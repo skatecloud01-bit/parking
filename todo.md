@@ -1,0 +1,6 @@
+- [x] Update `client/src/main.tsx` to use `VITE_API_BASE_URL` for backend URL (Option A frontend->separate backend).
+- [x] Add `client/.env.example` with frontend environment variable placeholders.
+- [x] Add root `vercel.json` configured to deploy `client` on Vercel.
+- [x] Add `DEPLOYMENT_OPTION_A.md` with step-by-step deployment guide for Vercel (frontend) + separate Node backend.
+- [x] Run critical-path build test (passed after installing dependencies; build completed successfully, with non-blocking warnings about missing analytics env placeholders and large chunk size).
+- [x] Update this TODO with completion status.
