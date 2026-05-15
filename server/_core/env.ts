@@ -6,6 +6,6 @@ export const ENV = {
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
   // Comma-separated list of allowed CORS origins (e.g. your Vercel frontend URL).
   corsOrigin: process.env.CORS_ORIGIN ?? "",
-  // Supabase — required for JWT verification on incoming tRPC requests
-  supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET ?? "",
+  // Supabase — URL used to fetch JWKS for JWT verification
+  supabaseUrl: process.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL ?? "",
 };

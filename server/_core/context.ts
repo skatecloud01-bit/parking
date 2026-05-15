@@ -1,5 +1,5 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { jwtVerify } from "jose";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import type { User } from "../../drizzle/schema";
 import * as db from "../db";
 import { ENV } from "./env";
@@ -10,6 +10,16 @@ export type TrpcContext = {
   user: User | null;
 };
 
+// Cached JWKS fetcher — jose reuses the cached keys automatically
+let _jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+function getJWKS() {
+  if (!_jwks) {
+    if (!ENV.supabaseUrl) throw new Error("VITE_SUPABASE_URL is not set");
+    _jwks = createRemoteJWKSet(new URL(`${ENV.supabaseUrl}/auth/v1/.well-known/jwks.json`));
+  }
+  return _jwks;
+}
+
 async function getUserFromRequest(
   req: CreateExpressContextOptions["req"]
 ): Promise<User | null> {
@@ -17,14 +27,9 @@ async function getUserFromRequest(
   if (!authHeader?.startsWith("Bearer ")) return null;
 
   const token = authHeader.slice(7);
-  if (!ENV.supabaseJwtSecret) {
-    console.warn("[Auth] SUPABASE_JWT_SECRET is not set");
-    return null;
-  }
 
   try {
-    const secret = new TextEncoder().encode(ENV.supabaseJwtSecret);
-    const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
+    const { payload } = await jwtVerify(token, getJWKS());
 
     const supabaseUserId = payload.sub;
     if (!supabaseUserId) return null;
@@ -48,7 +53,8 @@ async function getUserFromRequest(
     }
 
     return user ?? null;
-  } catch {
+  } catch (error) {
+    console.error("[Auth] JWT verification or DB lookup failed:", error);
     return null;
   }
 }
